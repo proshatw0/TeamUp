@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="icon" href="../static/image/favicon.svg" type="image/svg+xml">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/style/edit_profile.css">
+    <title>Редактор проекта</title>
+</head>
+<body>
+    <header>
+        <div class="header-contaner">
+            <div class="header-left">
+                <a href="/general">
+                    <img src="../static/image/favicon.svg" alt="">
+                </a>
+                <a href="/notifications" class="notification-button">
+                    {% if owner %}Ответы участников{% else %}Мои приглашения{% endif %}
+                    {% if count_notifications %}
+                        <span class="notification-count"> {{ count_notifications }} </span>
+                    {% endif %}
+                </a>
+            </div>
+            <div class="header-right">
+                <a class="header-button" href="{% if owner %} /project_add {% else %} {{ url_for('main.edit_profile') }} {% endif %}"> 
+                    {% if owner %}Создать проект{% else %}Заполнить профиль{% endif %} 
+                </a>
+                <a href="/favourite">
+                    <img src="../static/image/favourite.svg" alt="">
+                </a>
+                <a href="{{ url_for('main.profile') }}">
+                    <img src="../static/image/profile.svg" alt="" class="last">
+                </a>
+            </div>
+        </div>
+    </header>
+    <div class="main-container-area">
+        <div class="main-container">
+            <div class="profile-label">
+                {% if create %}
+                <h1>Создание проекта</h1>
+                {% else %}
+                <h1>Редактирование проекта</h1>
+                <a href="/remove_project?id={{ project.id }}">Удалить</a>
+                {% endif %}
+            </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-message">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+            <div class="profile-edit-data-contaner">
+                <form action="{% if create %}{{ url_for('main.project_add') }}{% else %}/edit_project?id={{ project.id }}{% endif %}" 
+                    method="post" enctype="multipart/form-data" class="profile-form">
+
+                    <div class="input-block">
+                        <p>Название проекта</p>
+                        <input type="text" name="title" placeholder="Введите название проекта"
+                            value="{% if not create %}{% if project.title %}{{project.title}}{%endif%}{%endif%}" required>
+                    </div>
+                    
+                    <div class="input-block">
+                        <p>Сфера проекта</p>
+                        <select name="scope_id" required>
+                            {% if not create %}
+                            {% if not project.scope_id %}
+                                <option value="" disabled selected hidden>Выберите сферу проекта</option>
+                            {% endif %}
+                            {% endif %}
+                            {% for scope in scopes %}
+                                <option value="{{ scope.id }}" {% if not create%}{% if scope.id == project.scope_id %}selected{% endif %}{% endif %}>
+                                    {{ scope.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="input-block-about">
+                        <p>Расскажите о проекте</p>
+                        <textarea maxlength="2000" class="input-owner-textarea" name="about" placeholder="Расскажите о себе" required>{% if not create %}{% if project.about %}{{project.about}}{%endif%}{%endif%}</textarea>
+                    </div>
+
+                    <div id="role-select-wrapper">
+                        <div class="custom-select-row">
+                            <div class="custom-select-block">
+                                <p>Роль, которую вы ищете</p>
+                                <select name="role_id" required>
+                                    {% if not create %}
+                                    {% if not project.roles %}
+                                    <option value="" disabled selected hidden>Выберите роль</option>
+                                    {% endif %}
+                                    {% endif %}
+                                    {% for role in roles %}
+                                        <option value="{{ role.id }}" {% if not create%}{% if role.id == project.roles[0] %}selected{% endif %}{% endif %}>
+                                            {{ role.label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="button" class="custom-circle-button" onclick="addRoleSelect()">+</button>
+                        </div>
+                        {% if not create %}
+                        {% if project.roles|length > 1 %}
+                        {% for role_proj in project.roles[1:] %}
+                        <div class="custom-select-row">
+                            <div class="custom-select-block">
+                                <p>Роль, которую вы ищете</p>
+                                <select name="role_id" required>
+                                    <option value="" disabled selected>Выберите роль</option>
+                                    {% for role in roles %}
+                                        <option value="{{ role.id }}" {% if not create%}{% if role.id == role_proj %}selected{% endif %}{% endif %}>
+                                            {{ role.label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="button" class="custom-remove-button" onclick="removeRoleSelect(this)">×</button>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                        {% endif %}
+                    </div>
+                                        
+                    <div class="input-block">
+                        <p>На каком этапе проект?</p>
+                        <select name="stage_id" required>
+                            {% if not create %}
+                            {% if not project.stage_id %}
+                                <option value="" disabled selected>Выберите этап проекта</option>
+                            {% endif %}
+                            {% endif %}
+                            {% for stage in stages %}
+                                <option value="{{ stage.id }}" {% if not create%}{% if stage.id == project.stage_id %}selected{% endif %}{% endif %}>
+                                    {{ stage.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="input-block">
+                        <p>Условия</p>
+                        <select name="conditions_id" required>
+                            {% if not create %}
+                            {% if not project.stage_id %}
+                                <option value="" disabled selected>Выберите условия проекта</option>
+                            {% endif %}
+                            {% endif %}
+                            {% for conditions in conditionss %}
+                                <option value="{{ conditions.id }}" {% if not create%}{% if conditions.id == project.conditions_id %}selected{% endif %}{% endif %}>
+                                    {{ conditions.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="input-block">
+                        <p>Цель проекта</p>
+                        <select name="target_id" required>
+                            {% if not create %}
+                            {% if not project.stage_id %}
+                                <option value="" disabled selected>Выберите цель проекта</option>
+                            {% endif %}
+                            {% endif %}
+                            {% for target in targets %}
+                                <option value="{{ target.id }}" {% if not create%}{% if target.id == project.target_id %}selected{% endif %}{% endif %}>
+                                    {{ target.label }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="input-block-about">
+                        <p>Опишите, какого участника команды вы ищите</p>
+                        <textarea maxlength="1000" class="input-owner-textarea" name="employee_description" placeholder="Расскажите об участнике" required>{% if not create %}{% if project.employee_description %}{{project.employee_description}}{%endif%}{%endif%}</textarea>
+                    </div>
+
+                    <button type="submit" class="btn">{% if create %}Создать проект {% else %} Сохранить {% endif %}</button>
+                </form>
+
+            </div>
+        </div>
+    </div>
+
+<script>
+    let roleSelectCount = 1;
+
+    function addRoleSelect() {
+        const wrapper = document.getElementById('role-select-wrapper');
+        const newBlock = document.createElement('div');
+        newBlock.className = 'custom-select-row';
+        newBlock.innerHTML = `
+            <div class="custom-select-block">
+                <p>Роль, которую вы ищете</p>
+                <select name="role_id" required>
+                    <option value="" disabled selected>Выберите роль</option>
+                    {% for role in roles %}
+                        <option value="{{ role.id }}">{{ role.label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button type="button" class="custom-remove-button" onclick="removeRoleSelect(this)">×</button>
+        `;
+        wrapper.appendChild(newBlock);
+        roleSelectCount++;
+    }
+
+    function removeRoleSelect(button) {
+        const block = button.parentElement;
+        block.remove();
+    }
+</script>
+</body>
+</html>

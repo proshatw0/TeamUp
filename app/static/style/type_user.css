@@ -1,0 +1,122 @@
+body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100vh;
+    background-color: #E3E3E3;
+    font-family: Arial;
+    margin: 0;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-container {
+    display: flex;
+    width: calc(100% - 50px);
+    max-width: 1870px;
+    height: calc(100vh - 50px);
+    max-height: 1080px;
+    padding: 25px;
+    background-color: #FFFFFF;
+    border-radius: 24px;
+    flex-direction: column;
+}
+
+.login-header{
+    display: flex;
+}
+
+.login-area{
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+}
+
+.login-contaner{
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.login-all-contaner{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.login-all-contaner h1{
+    font-size: 64px;
+    width: 100%;
+    color: #000000;
+}
+
+.form-container {
+    text-align: center;
+}
+
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    justify-content: center;
+    margin-bottom: 50px;
+    border: none;
+}
+
+.radio-group label{
+    border-radius: 100px;
+    box-shadow: 0px 4px 20px 0px #00000014;
+}
+
+.radio-card {
+    display: block;
+    border: 4px solid #e9e9e900;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    padding: 24px 34px;
+    text-align: start;
+}
+
+.radio-card h2{
+    font-size: 28px;
+    font-weight: 400;
+    color: #232323;
+    margin: 0 0 12px 0;
+}
+
+.radio-card p{
+    font-size: 24px;
+    font-weight: 400;
+    color: #5E5E5E;
+    margin: 0;
+}
+
+input[type="radio"] {
+    display: none;
+}
+
+input[type="radio"]:checked + .radio-card {
+    border: 4px #8129D8 solid;
+}
+
+.button-contaner{
+    width: 100%;
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.submit-button {
+    padding: 12px 65px;
+    background-color: #8129D8;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 24px;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.submit-button:hover {
+    background-color: #0056b3;
+}

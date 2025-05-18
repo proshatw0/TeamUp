@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="icon" href="../static/image/favicon.svg" type="image/svg+xml">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/style/type_user.css">
+    <title>Тип пользователя</title>
+</head>
+<body>
+    <div class="main-container">
+        <div class="login-header">
+            <img src="../static/image/header-login.svg" alt="">
+        </div>
+        <div style="width: 100%; height: calc(100vh - 96px); display: flex; justify-content: center;">
+            <div class="login-all-contaner">
+                <h1>Что вы ищите?</h1>
+                <form class="form-container" action="/type_user" method="post">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                            <div class="alert alert-{{ category }}">{{ message }}</div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    <div class="radio-group">
+                        <label>
+                            <input type="radio" name="user_type" value="employee" required>
+                            <div class="radio-card">
+                                <h2>Хочу присоединиться к существующему проекту</h2>
+                                <p>Профиль участника проекта</p>
+                            </div>
+                        </label>
+
+                        <label>
+                            <input type="radio" name="user_type" value="owner">
+                            <div class="radio-card">
+                                <h2>Ищу команду для своего проекта</h2>
+                                <p>Профиль создателя проекта</p>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="button-contaner">
+                        <button type="submit" class="submit-button">Продолжить</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

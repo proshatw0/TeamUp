@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="icon" href="../static/image/favicon.svg" type="image/svg+xml">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/style/edit_profile.css">
+    <title>Редактор профиля</title>
+</head>
+<body>
+    <header>
+        <div class="header-contaner">
+            <div class="header-left">
+                <a href="/general">
+                    <img src="../static/image/favicon.svg" alt="">
+                </a>
+                <a href="/notifications" class="notification-button">
+                    {% if owner %}Ответы участников{% else %}Мои приглашения{% endif %}
+                    {% if count_notifications %}
+                        <span class="notification-count"> {{ count_notifications }} </span>
+                    {% endif %}
+                </a>
+            </div>
+            <div class="header-right">
+                <a class="header-button" href="{% if owner %} /project_add {% else %} {{ url_for('main.edit_profile') }} {% endif %}"> 
+                    {% if owner %}Создать проект{% else %}Заполнить профиль{% endif %} 
+                </a>
+                <a href="/favourite">
+                    <img src="../static/image/favourite.svg" alt="">
+                </a>
+                <a href="{{ url_for('main.profile') }}">
+                    <img src="../static/image/profile.svg" alt="" class="last">
+                </a>
+            </div>
+        </div>
+    </header>
+    <div class="main-container-area">
+        <div class="main-container">
+            <div class="profile-label">
+                <h1>Мой профиль</h1>
+                <a href="/logout">Выйти</a>
+            </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-message">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+            {% if owner %}
+                <div class="profile-edit-data-contaner">
+                    <form action="{{ url_for('main.edit_profile') }}" 
+                        method="post" enctype="multipart/form-data" class="profile-form">
+
+                        <label for="avatar-input" class="avatar-label">
+                            <img id="avatar-preview"
+                                src="{{ url_for('static', filename=(data.avatar or 'image/default.png')) }}"
+                                alt="Ваш аватар">
+                            <div class="icon-overlay">
+                                <img src="../static/image/edit.svg" alt="">
+                            </div>
+                        </label>
+                        <input id="avatar-input" type="file" name="avatar" accept="image/png,image/jpeg" style="display:none;">
+                        
+                        <div class="input-block">
+                            <p>Фамилия</p>
+                            <input type="text" name="surname" placeholder="Введите фамилию"
+                                value="{{ data.surname or '' }}" required>
+                        </div>
+                        
+                        <div class="input-block">
+                            <p>Имя</p>
+                            <input type="text" name="name" placeholder="Введите имя"
+                                value="{{ data.name or '' }}" required>
+                        </div>
+                        
+                        <div class="input-block">
+                            <p>Отчество</p>
+                            <input type="text" name="middlename" placeholder="Введите отчество"
+                                value="{{ data.middlename or '' }}" required>
+                        </div>
+                        
+                        <div class="input-block">
+                            <p>Роль</p>
+                            <select name="role_id" required>
+                                {% if not data.role_id %}
+                                    <option value="" disabled selected>Выберите Вашу роль</option>
+                                {% endif %}
+                                {% for role in roles %}
+                                    <option value="{{ role.id }}" {% if role.id == data.role_id %}selected{% endif %}>
+                                        {{ role.label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="input-block">
+                            <p>Опыт</p>
+                            <select name="experience_id" required>
+                                {% if not data.experience_id %}
+                                    <option value="" disabled selected>Выберите какой у Вас опыт</option>
+                                {% endif %}
+                                {% for experience in experiences %}
+                                    <option value="{{ experience.id }}" {% if experience.id == data.experience_id %}selected{% endif %}>
+                                        {{ experience.label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="twice-grid-contaner">
+                            <div class="input-block">
+                                <p>Дата рождения</p>
+                                <input id="birth-date"
+                                    name="birth_date"
+                                    inputmode="numeric"
+                                    autocomplete="off"
+                                    value="{{ data.birth_date.strftime('%d.%m.%Y') if data.birth_date else '' }}"
+                                    required>
+                            </div>
+                            
+                            <div class="input-block">
+                                <p>Пол</p>
+                                <select name="sex_id" required>
+                                    {% if not data.sex_id %}
+                                        <option value="" disabled selected>Выберите пол</option>
+                                    {% endif %}
+                                    {% for sex in sexs %}
+                                        <option value="{{ sex.id }}" {% if sex.id == data.sex_id %}selected{% endif %}>
+                                            {{ sex.label }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="input-block-about">
+                            <p>Немного расскажите о себе</p>
+                            <textarea maxlength="512" class="input-owner-textarea" name="about" placeholder="Расскажите о себе" required>{{ data.about or '' }}</textarea>
+                        </div>
+
+                        <button type="submit" class="btn">Сохранить</button>
+                    </form>
+
+                </div>
+            {% else %}
+                <div class="profile-edit-data-contaner">
+                    <form action="{{ url_for('main.edit_profile') }}" 
+                        method="post" enctype="multipart/form-data" class="profile-form">
+                        <div class="pages-wrapper">
+                            <div class="page page-1 active">
+                                <label for="avatar-input" class="avatar-label">
+                                    <img id="avatar-preview"
+                                        src="{{ url_for('static', filename=(data.avatar or 'image/default.png')) }}"
+                                        alt="Ваш аватар">
+                                    <div class="icon-overlay">
+                                        <img src="../static/image/edit.svg" alt="">
+                                    </div>
+                                </label>
+                                <input id="avatar-input" type="file" name="avatar" accept="image/png,image/jpeg" style="display:none;">
+                                <div class="input-block">
+                                    <p>Фамилия</p>
+                                    <input type="text" name="surname" placeholder="Введите фамилию"
+                                        value="{{ data.surname or '' }}" required>
+                                </div>
+                                <div class="input-block">
+                                    <p>Имя</p>
+                                    <input type="text" name="name" placeholder="Введите имя"
+                                        value="{{ data.name or '' }}" required>
+                                </div>
+                                <div class="input-block">
+                                    <p>Отчество</p>
+                                    <input type="text" name="middlename" placeholder="Введите отчество"
+                                        value="{{ data.middlename or '' }}" required>
+                                </div>
+                                <div class="twice-grid-contaner">
+                                    <div class="input-block">
+                                        <p>Дата рождения</p>
+                                        <input id="birth-date"
+                                            name="birth_date"
+                                            inputmode="numeric"
+                                            autocomplete="off"
+                                            value="{{ data.birth_date.strftime('%d.%m.%Y') if data.birth_date else '' }}"
+                                            required>
+                                    </div>
+                                    <div class="input-block">
+                                        <p>Пол</p>
+                                        <select name="sex_id" required>
+                                            {% if not data.sex_id %}
+                                            <option value="" disabled selected>Выберите пол</option>
+                                            {% endif %}
+                                            {% for sex in sexs %}
+                                            <option value="{{ sex.id }}" {% if sex.id == data.sex_id %}selected{% endif %}>
+                                                {{ sex.label }}
+                                            </option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="buttons-wrapper buttons-page-1">
+                                    <button type="button" class="next-page">
+                                        <img src="../static/image/arrow-right.svg" alt="->">
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="page page-2">
+                                <div class="input-block">
+                                    <p>Ваша роль</p>
+                                    <select name="role_id" required>
+                                        {% if not data.role_id %}
+                                            <option value="" disabled selected>Выберите Вашу роль в команде</option>
+                                        {% endif %}
+                                        {% for role in roles %}
+                                            <option value="{{ role.id }}" {% if role.id == data.role_id %}selected{% endif %}>
+                                                {{ role.label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="input-block">
+                                    <p>Сфера проекта</p>
+                                    <select name="scope_id">
+                                        {% if not data.scope_id %}
+                                            <option value="" disabled selected>Выберите сферу проекта</option>
+                                        {% endif %}
+                                        {% for scope in scopes %}
+                                            <option value="{{ scope.id }}" {% if scope.id == data.scope_id %}selected{% endif %}>
+                                                {{ scope.label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="input-block">
+                                    <p>Опыт</p>
+                                    <select name="experience_id" required>
+                                        {% if not data.experience_id %}
+                                            <option value="" disabled selected>Выберите сколько у Вас опыта</option>
+                                        {% endif %}
+                                        {% for experience in experiences %}
+                                            <option value="{{ experience.id }}" {% if experience.id == data.experience_id %}selected{% endif %}>
+                                                {{ experience.label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="input-block">
+                                    <p>Уровень вовлеченности в проект</p>
+                                    <select name="involvement_id" required>
+                                        {% if not data.involvement_id %}
+                                            <option value="" disabled selected>Выберите какое время можете посвещать проекту</option>
+                                        {% endif %}
+                                        {% for involvement in involvements %}
+                                            <option value="{{ involvement.id }}" {% if involvement.id == data.involvement_id %}selected{% endif %}>
+                                                {{ involvement.label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="input-block">
+                                    <p>Условия</p>
+                                    <select name="conditions_id" required>
+                                        {% if not data.conditions_id %}
+                                            <option value="" disabled selected>Выберите на каких условиях хотите участвовать в проекте</option>
+                                        {% endif %}
+                                        {% for conditions in conditionss %}
+                                            <option value="{{ conditions.id }}" {% if conditions.id == data.conditions_id %}selected{% endif %}>
+                                                {{ conditions.label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="input-block">
+                                    <p>Цель</p>
+                                    <select name="target_id" required>
+                                        {% if not data.target_id %}
+                                            <option value="" disabled selected>Выберите цель участия в проекте</option>
+                                        {% endif %}
+                                        {% for target in targets %}
+                                            <option value="{{ target.id }}" {% if target.id == data.target_id %}selected{% endif %}>
+                                                {{ target.label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="input-block">
+                                    <p>Ссылка на портфолио</p>
+                                    <input type="text" name="portfolio_link" placeholder="Прикрепите ссылку на свои работы"
+                                        value="{{ data.portfolio_link or '' }}" required>
+                                </div>
+                                <div class="input-block">
+                                    <p>Телефон</p>
+                                    <input id="phone" type="text" name="phone" placeholder="+7 (___) ___-__-__"
+                                        value="{{ data.phone or '' }}" required>
+                                </div>
+                                <div class="input-block">
+                                    <p>Ник в Telegram</p>
+                                    <input type="text" name="telegram_nickname" placeholder="Введите ваш username в Telegram"
+                                        value="{{ data.telegram_nickname or '' }}" required>
+                                </div>
+                                <div class="input-block-about">
+                                    <p>Немного расскажите о себе</p>
+                                    <textarea maxlength="512" class="input-owner-textarea" name="about" placeholder="Расскажите о себе" required>{{ data.about or '' }}</textarea>
+                                </div>
+                                <div class="input-block-about">
+                                    <p>Немного расскажите о проекте, который ищите:</p>
+                                    <textarea maxlength="512" class="input-owner-textarea" name="about_project" placeholder="Расскажите о проекте" required>{{ data.about_project or '' }}</textarea>
+                                </div>
+                                <div class="buttons-wrapper-2 buttons-page-2" style="display: none;">
+                                    <button type="button" class="prev-page">
+                                        <img src="../static/image/arrow-right.svg" alt="<-" style="transform: rotate(180deg);">
+                                    </button>
+                                    <button type="submit" class="submit-page">
+                                        Сохранить
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+    <!-- библиотека IMask - Пользователь видит шаблон __.__.____, вводит только цифры -->
+    <script src="https://unpkg.com/imask"></script> 
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        /* ---------- переключение страниц (только для employee) ---------- */
+        {% if not owner %}
+        const pagesWrapper = document.querySelector('.pages-wrapper');
+        const page1Btns    = document.querySelector('.buttons-page-1');
+        const page2Btns    = document.querySelector('.buttons-page-2');
+        const nextBtn      = document.querySelector('.next-page');
+        const prevBtn      = document.querySelector('.prev-page');
+
+        if (pagesWrapper && nextBtn && prevBtn && page1Btns && page2Btns) {
+            nextBtn.addEventListener('click', e => {
+            e.preventDefault();
+            pagesWrapper.classList.add('show-second');
+            page1Btns.style.display = 'none';
+            page2Btns.style.display = 'flex';
+            });
+
+            prevBtn.addEventListener('click', e => {
+            e.preventDefault();
+            pagesWrapper.classList.remove('show-second');
+            page1Btns.style.display = 'flex';
+            page2Btns.style.display = 'none';
+            });
+        }
+
+        /* --- маска телефона (только для employee) --- */
+        IMask(document.getElementById('phone'), {
+            mask: '+{7} (000) 000-00-00',
+            lazy: false,
+            autofix: true
+        });
+        {% endif %}
+
+    /* ---------- предпросмотр аватара ---------- */
+        const input   = document.getElementById('avatar-input');
+        const preview = document.getElementById('avatar-preview');
+
+        if (input && preview) {
+            input.addEventListener('change', e => {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = ev => preview.src = ev.target.result;
+                reader.readAsDataURL(file);
+            }
+            });
+        }
+
+        /* ---------- маска даты ---------- */
+        const birthDate = document.getElementById('birth-date');
+        if (birthDate) {
+            IMask(birthDate, {
+            mask: Date,
+            pattern: 'd.`m.`Y',
+            lazy: false,
+            autofix: true,
+            blocks: {
+                d: { mask: IMask.MaskedRange, from: 1,  to: 31,  maxLength: 2 },
+                m: { mask: IMask.MaskedRange, from: 1,  to: 12, maxLength: 2 },
+                Y: { mask: IMask.MaskedRange, from: 1920, to: 2015 }
+            }
+            });
+        }
+    });
+</script>
+</body>
+</html>

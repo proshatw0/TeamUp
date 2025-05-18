@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="icon" href="../static/image/favicon.svg" type="image/svg+xml">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/style/project.css">
+    <title>{{ project.title }}</title>
+</head>
+<body>
+    <header>
+        <div class="header-contaner">
+            <div class="header-left">
+                <a href="/general">
+                    <img src="../static/image/favicon.svg" alt="">
+                </a>
+                <a href="/notifications" class="notification-button">
+                    {% if owner %}Ответы участников{% else %}Мои приглашения{% endif %}
+                    {% if count_notifications %}
+                        <span class="notification-count"> {{ count_notifications }} </span>
+                    {% endif %}
+                </a>
+            </div>
+            <div class="header-right">
+                <a class="header-button" href="{% if owner %} /project_add {% else %} {{ url_for('main.edit_profile') }} {% endif %}"> 
+                    {% if owner %}Создать проект{% else %}Заполнить профиль{% endif %} 
+                </a>
+                <a href="/favourite">
+                    <img src="../static/image/favourite.svg" alt="">
+                </a>
+                <a href="{{ url_for('main.profile') }}">
+                    <img src="../static/image/profile.svg" alt="" class="last">
+                </a>
+            </div>
+        </div>
+    </header>
+    <div class="main-container-area">
+        <div class="main-container">
+            <div class="project-contaner">
+                {% if owner %}
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    <div class="flash-message">
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">{{ message }}</div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                {% endwith %}
+                {% endif %}
+                <h1>{{ project.title }}</h1>
+                <p class="about">{{ project.about }}</p>
+                <div class="twice-grid-contaner">
+                    <div class="twice-grid">
+                        <p class="title-grid">Цель</p>
+                        <p class="value-grid">{{ project.target.label }}</p>
+                    </div>  
+                    <div class="twice-grid">
+                        <p class="title-grid">Этап проекта</p>
+                        <p class="value-grid">{{ project.stage.label }}</p>
+                    </div>  
+                </div>
+                <div class="twice-grid-contaner">
+                    <div class="twice-grid">
+                        <p class="title-grid">Сфера проекта</p>
+                        <p class="value-grid">{{ project.scope.label }}</p>
+                    </div>  
+                    <div class="twice-grid">
+                        <p class="title-grid">Условия</p>
+                        <p class="value-grid">{{ project.conditions.label }}</p>
+                    </div>  
+                </div>
+                <div class="once-grid-contaner">
+                    <p class="title-grid">Кого ищем</p>
+                    <p class="value-grid">{{ project.roles_str }}</p>
+                </div>
+                <h3>Какого участника команды мы ищем:</h3>
+                <p class="about">{{ project.employee_description }}</p>
+                {% if creator %}
+                <a class="buttonEdit" href="/edit_project?id={{ project.id }}">Редактировать</a>
+                {% endif %}
+                {% if creator %}
+                <h1>Откликнулись</h1>
+                {% for employee in employees %}
+                {% if employee.role_id and employee.surname and employee.name %}
+                <div class="employee-contaner">
+                    <div class="employee-contaner-top">
+                        <div class="employee-contaner-category">
+                            {% if employee.involvement_id %}
+                                <p>{{ employee.involvement.label }}</p>
+                            {% endif %}
+                            {% if employee.conditions_id %}
+                                <p>{{ employee.conditions.label }}</p>
+                            {% endif %}
+                            {% if employee.scope_id %}
+                                <p>{{ employee.scope.label }}</p>
+                            {% endif %}
+                        </div>
+                        <button class="favourite-contaner {% if employee.fav %} active {% endif %}" data-employee-id="{{ employee.id }}">
+                            <img src="{% if employee.fav %} ../static/image/favourite-active.svg {% else %} ../static/image/favourite.svg {% endif %}" alt="">
+                        </button>
+                    </div>
+                    <a href="/employee?id={{ employee.id }}" class="employee-role">{{ employee.role.label if employee.surname else '' }}</a>
+                    <h3 class="employee-name">{{ employee.surname if employee.surname else ''}} {{ employee.name if employee.name else ''}}</h3>
+                    <p class="employee-about">{{ employee.about if employee.about else ''}}</p>
+
+                    <div class="employee-exp-target-contaner">
+                        {% if employee.experience_id %}
+                        <div class="employee-exp-target">
+                            <p class="lable">Опыт</p>
+                            <p>{{ employee.experience.label}}</p>
+                        </div>
+                        {% endif %}
+                        {% if employee.target_id %}
+                        <div class="employee-exp-target">
+                            <p class="lable">Цель участия</p>
+                            <p>{{ employee.target.label}}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% if employee.response%}
+                    {% if employee.response.status.label == "Отправлен" %}
+                    <div class="link-contaner-response">
+                        <a href="/ok_response?id={{ employee.response.id }}" class="employee-btn-ok">Пригласить</a>
+                        <a href="/no_response?id={{ employee.response.id }}" class="employee-btn-no">Отказать</a>
+                    </div>
+                    {% else %}
+                        <p class="status-bottom {% if employee.response.status.label == "Отправлен" %} statusWite {% elif employee.response.status.label == "Принят" %} statusOk {% elif employee.response.status.label == "Отклонён" %} statusNo {% endif %}">{{ employee.response.status.label }}</p>
+                    {% endif %}
+                    {% else %}
+                    <a href="/employee?id={{ employee.id }}" class="employee-btn-no">Отказать</a>
+                    {% endif %}
+
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% endif %}
+            </div>
+            <div class="project-right">
+                <div class="right">
+                    {% if not creator and not owner%}
+                    <div class="button-contaner-right">
+                        <button class="favourite-contaner {% if fav %} active {% endif %}" data-project-id="{{ project.id }}">
+                            <img src="{% if fav %} ../static/image/favourite-active.svg {% else %} ../static/image/favourite.svg {% endif %}" alt="">
+                        </button>
+                        {% if not project.in_team %}
+                            {% if project.invite and project.invite.status.label == "Отправлен" %}
+                                <div class="link-contaner-response">
+                                    <a href="/ok_invite?invite_id={{ project.invite.id }}" class="employee-btn-ok">Принять</a>
+                                    <a href="/no_invite?invite_id={{ project.invite.id }}" class="employee-btn-no">Отказать</a>
+                                </div>
+                            {% elif response and response.status.label == "Отправлен" %}
+                                <a href="/remove_response?id={{ project.id }}" class="buttonemployee buttonCancel">Отменить</a>
+                            {% elif not response and not project.invite %}
+                                <a href="/add_response?id={{ project.id }}" class="buttonemployee burronRespond">Откликнуться</a>
+                            {% else %}
+                                <p class="status-bottom
+                                    {% if project.invite.status.label == "Отправлен" %} statusWite
+                                    {% elif project.invite.status.label == "Принят" %} statusOk
+                                    {% elif project.invite.status.label == "Отклонён" %} statusNo
+                                    {% endif %}">
+                                    {{ project.invite.status.label }}
+                                </p>
+                            {% endif %}
+                        {% endif %}
+
+                    </div>
+                    {% if response %}
+                    <div class="button-contaner-right">
+                        <p class="status {% if response.status.label == "Отправлен" %} statusWite {% elif response.status.label == "Принят" %} statusOk {% elif response.status.label == "Отклонён" %} statusNo {% endif %}">{{ response.status.label }}</p>
+                    </div>
+                    {% endif %}
+                    {% endif %}
+                    <div class="creator-employees-contaner">
+                        <div class="creator-contaner">
+                            <img src="{{ url_for('static', filename=project.owner.avatar) }}" alt="">
+                        </div>
+                        <div class="creator">
+                            <p>Создатель проекта</p>
+                            <a href="/owner?id={{ project.owner_id }}">{{ project.owner.name }} {{ project.owner.surname }}</a>
+                        </div>
+                    </div>
+                    {% if project.employees %}
+                    <p class="project-link-text">Уже участвуют</p>
+                    <div class="link-contaner">
+                    {% for emp_id, emp_name in project.employees %}
+                        <a href="/employee?id={{ emp_id }}">{{ emp_name }}</a>
+                    {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="project-link-text">Участников пока нет</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll(".favourite-contaner").forEach(button => {
+            button.addEventListener("click", async () => {
+                const projectId = button.dataset.projectId;
+                const img = button.querySelector("img");
+
+                try {
+                    const res = await fetch("/favourite_project_add", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ id: projectId })
+                    });
+
+                    const data = await res.json();
+
+                    if (res.ok) {
+                        if (data.action === "added") {
+                            button.classList.add("active");
+                            img.src = "../static/image/favourite-active.svg";
+                        } else if (data.action === "removed") {
+                            button.classList.remove("active");
+                            img.src = "../static/image/favourite.svg";
+                        }
+                    } else {
+                        console.error("Ошибка сервера:", data.error || res.statusText);
+                    }
+                } catch (err) {
+                    console.error("Ошибка запроса:", err);
+                }
+            });
+        });
+        {% if owner %}
+        document.querySelectorAll(".favourite-contaner").forEach(button => {
+            button.addEventListener("click", async () => {
+            const empId = button.dataset.employeeId;
+            const img = button.querySelector('img');
+
+            try {
+                const res = await fetch("/favourite_add", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ id: empId }),
+                });
+                const data = await res.json();
+
+                if (res.ok) {
+                if (data.action === "added") {
+                    button.classList.add("active");
+                    img.src = "../static/image/favourite-active.svg";
+                } else if (data.action === "removed") {
+                    button.classList.remove("active");
+                    img.src = "../static/image/favourite.svg";
+                }
+                } else {
+                console.error("Ошибка:", data.error);
+                }
+            } catch (err) {
+                console.error("Ошибка запроса:", err);
+            }
+            });
+        });
+        {% endif %}
+    });
+    </script>
+</body>
+</html>

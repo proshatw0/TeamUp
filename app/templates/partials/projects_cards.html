@@ -1,0 +1,28 @@
+{% for project in projects %}
+<div class="project-contaner">
+    <div class="project-contaner-top">
+        <div class="project-contaner-category">
+            {% if project.scope_id %}<p>{{ project.scope.label }}</p>{% endif %}
+            {% if project.target_id %}<p>{{ project.target.label }}</p>{% endif %}
+            {% if project.stage_id %}<p>{{ project.stage.label }}</p>{% endif %}
+            {% if project.conditions_id %}<p>{{ project.conditions.label }}</p>{% endif %}
+        </div>
+        <button class="favourite-contaner {% if project.fav %} active {% endif %}" data-project-id="{{ project.id }}">
+            <img src="{% if project.fav %} ../static/image/favourite-active.svg {% else %} ../static/image/favourite.svg {% endif %}" alt="">
+        </button>
+    </div>
+    <a href="/project?id={{ project.id }}" class="project-title">{{ project.title }}</a>
+    <h3 class="project-roles">{{ project.roles_str }}</h3>
+    <p class="project-about">{{ project.about }}</p>
+    {% if project.employees %}
+    <p class="project-link-text">Уже участвуют</p>
+    <div class="link-contaner">
+        {% for emp_id, emp_name in project.employees %}
+        <a href="/employee?id={{ emp_id }}">{{ emp_name }}</a>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="project-link-text">Участников пока нет</p>
+    {% endif %}
+</div>
+{% endfor %}

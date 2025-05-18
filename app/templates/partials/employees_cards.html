@@ -1,0 +1,34 @@
+{% for employee in employees %}
+    {% if employee.role_id and employee.surname and employee.name %}
+    <div class="employee-contaner">
+        <div class="employee-contaner-top">
+            <div class="employee-contaner-category">
+                {% if employee.involvement_id %}<p>{{ employee.involvement.label }}</p>{% endif %}
+                {% if employee.conditions_id %}<p>{{ employee.conditions.label }}</p>{% endif %}
+                {% if employee.scope_id %}<p>{{ employee.scope.label }}</p>{% endif %}
+            </div>
+            <button class="favourite-contaner {% if employee.fav %} active {% endif %}" data-employee-id="{{ employee.id }}">
+                <img src="{% if employee.fav %} ../static/image/favourite-active.svg {% else %} ../static/image/favourite.svg {% endif %}" alt="">
+            </button>
+        </div>
+        <h2 class="employee-role">{{ employee.role.label }}</h2>
+        <h3 class="employee-name">{{ employee.surname }} {{ employee.name }}</h3>
+        <p class="employee-about">{{ employee.about }}</p>
+        <div class="employee-exp-target-contaner">
+            {% if employee.experience_id %}
+            <div class="employee-exp-target">
+                <p class="lable">Опыт</p>
+                <p>{{ employee.experience.label }}</p>
+            </div>
+            {% endif %}
+            {% if employee.target_id %}
+            <div class="employee-exp-target">
+                <p class="lable">Цель участия</p>
+                <p>{{ employee.target.label }}</p>
+            </div>
+            {% endif %}
+        </div>
+        <a href="/employee?id={{ employee.id }}" class="employee-btn">Подробнее</a>
+    </div>
+    {% endif %}
+{% endfor %}

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <link rel="icon" href="../static/image/favicon.svg" type="image/svg+xml">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../static/style/profile.css">
+    <title>Профиль</title>
+</head>
+<body>
+    <header>
+        <div class="header-contaner">
+            <div class="header-left">
+                <a href="/general">
+                    <img src="../static/image/favicon.svg" alt="">
+                </a>
+                <a href="/notifications" class="notification-button">
+                    {% if owner %}Ответы участников{% else %}Мои приглашения{% endif %}
+                    {% if count_notifications %}
+                        <span class="notification-count"> {{ count_notifications }} </span>
+                    {% endif %}
+                </a>
+            </div>
+            <div class="header-right">
+                <a class="header-button" href="{% if owner %} {% else %} {{ url_for('main.edit_profile') }} {% endif %}"> 
+                    {% if owner %}Создать проект{% else %}Заполнить профиль{% endif %} 
+                </a>
+                <a href="/favourite">
+                    <img src="../static/image/favourite.svg" alt="">
+                </a>
+                <a href="{{ url_for('main.profile') }}">
+                    <img src="../static/image/profile.svg" alt="" class="last">
+                </a>
+            </div>
+        </div>
+    </header>
+    <div class="main-container-area">
+        <div class="main-container">
+            <div class="profile-label">
+                <h1>Мой профиль</h1>
+                <a href="/logout">Выйти</a>
+            </div>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div class="flash-message">
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+            {% if data.name %}
+                    <div class="profile-data-contaner">
+                    <img id="avatar-preview"
+                                src="{{ url_for('static', filename=(data.avatar or 'image/default.png')) }}"
+                                alt="Ваш аватар">
+                    <h2>{{ data.surname if data.surname else ''}} {{ data.name if data.name else ''}} {{ data.middlename if data.middlename else ''}}</h2>
+                    <p class="role">{{ data.role.label }}</p>
+                    <p class="experience">{{ data.experience.label if data.birth_date else ''}}</p>
+                    <div class="twice-grid-contaner">
+                        <div class="twice-grid">
+                            <p class="title-grid">Дата рождения</p>
+                            <p class="value-grid">{{ data.birth_date.strftime('%d.%m.%Y') if data.birth_date else '' }}</p>
+                        </div>  
+                        <div class="twice-grid">
+                            <p class="title-grid">Пол</p>
+                            <p class="value-grid">{{ data.sex.label if data.sex.label else '' }}</p>
+                        </div>  
+                    </div>  
+                    {% if owner %}
+                    <div class="once-grid-contaner">
+                        <p class="title-grid">О себе</p>
+                        <p class="value-grid">{{ data.about if data.about else '' }}</p>
+                    </div>
+                    {% else %}  
+                    <div class="twice-grid-contaner">
+                        <div class="twice-grid">
+                            <p class="title-grid">Уровень вовлеченности</p>
+                            <p class="value-grid">{{ data.involvement.label if data.involvement.label else '' }}</p>
+                        </div>  
+                        <div class="twice-grid">
+                            <p class="title-grid">Условия</p>
+                            <p class="value-grid">{{ data.conditions.label if data.conditions.label else '' }}</p>
+                        </div>  
+                    </div>
+                    <div class="twice-grid-contaner">
+                        <div class="twice-grid">
+                            <p class="title-grid">Цель участия</p>
+                            <p class="value-grid">{{ data.target.label if data.target.label else '' }}</p>
+                        </div>  
+                        <div class="twice-grid">
+                            <p class="title-grid">Сфера проекта</p>
+                            <p class="value-grid">{{ data.scope.label if data.scope.label else '' }}</p>
+                        </div>  
+                    </div>
+                    <div class="once-grid-contaner">
+                        <p class="title-grid">О себе</p>
+                        <p class="value-grid">{{ data.about if data.about else '' }}</p>
+                    </div>
+                    <div class="twice-grid-contaner">
+                        <div class="twice-grid">
+                            <p class="title-grid">Телефон</p>
+                            <p class="value-grid">{{ data.phone if data.phone else '' }}</p>
+                        </div>  
+                        <div class="twice-grid">
+                            <p class="title-grid">Ник в Telegram</p>
+                            <p class="value-grid">{{ data.telegram_nickname if data.telegram_nickname else '' }}</p>
+                        </div>  
+                    </div>
+                    <div class="once-grid-contaner">
+                        <p class="title-grid">Описание проекта</p>
+                        <p class="value-grid">{{ data.about_project if data.about_project else '' }}</p>
+                    </div>
+                    {% endif %}
+                    <a href="/edit_profile">
+                        Редактировать
+                    </a>
+                </div>
+                {% if owner %}
+                    <h1>Мой проекты</h1>
+                    {% if projects %}
+                        {% for project in projects %}
+                        <div class="project-contaner">
+                            <div class="project-contaner-top">
+                                <div class="project-contaner-category">
+                                    {% if project.scope_id %}
+                                        <p>{{ project.scope.label }}</p>
+                                    {% endif %}
+                                    {% if project.target_id %}
+                                        <p>{{ project.target.label }}</p>
+                                    {% endif %}
+                                    {% if project.stage_id %}
+                                        <p>{{ project.stage.label }}</p>
+                                    {% endif %}
+                                    {% if project.conditions_id %}
+                                        <p>{{ project.conditions.label }}</p>
+                                    {% endif %}
+                                </div>
+                                {% if project.invites < 4 and project.invites > 1 %}
+                                <a href="/response?id={{ project.id }}">{{project.invites}} отклика</a>
+                                {% elif project.invites == 1 %}
+                                <a href="/response?id={{ project.id }}">{{project.invites}} отклик</a>
+                                {% else %}
+                                <a href="/response?id={{ project.id }}">{{project.invites}} откликов</a>
+                                {% endif %}
+                            </div>
+                            <a href="/project?id={{ project.id }}" class="project-title">{{ project.title }}</a>
+                            <h3 class="project-roles">{{ project.roles_str }}</h3>
+                            <p class="project-about">{{ project.about }}</p>
+                            {% if project.employees %}
+                            <p class="project-link-text">Уже участвуют</p>
+                            <div class="link-contaner">
+                            {% for emp_id, emp_name in project.employees %}
+                                <a href="/employee?id={{ emp_id }}">{{ emp_name }}</a>
+                            {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="project-link-text">Участников пока нет</p>
+                            {% endif %}
+                        </div>
+                        {%endfor%}
+
+                    {% else %}
+                        <div class="project-not-data-contaner">
+                            <p>У Вас еще нет ни одного проекта. Создайте проект, чтобы приглашать участников в команду.</p>
+                            <a href="">Создать проект</a>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <h1>Мои отклики</h1>
+                    {% if projects %}
+                        {% for project in projects %}
+                        <div class="project-contaner">
+                            <div class="project-contaner-top">
+                                <div class="project-contaner-category">
+                                    {% if project.scope_id %}
+                                        <p>{{ project.scope.label }}</p>
+                                    {% endif %}
+                                    {% if project.target_id %}
+                                        <p>{{ project.target.label }}</p>
+                                    {% endif %}
+                                    {% if project.stage_id %}
+                                        <p>{{ project.stage.label }}</p>
+                                    {% endif %}
+                                    {% if project.conditions_id %}
+                                        <p>{{ project.conditions.label }}</p>
+                                    {% endif %}
+                                </div>
+                                
+                            </div>
+                            <a href="/project?id={{ project.id }}" class="project-title">{{ project.title }}</a>
+                            <h3 class="project-roles">{{ project.roles_str }}</h3>
+                            <p class="project-about">{{ project.about }}</p>
+                            {% if project.employees %}
+                            <p class="project-link-text">Уже участвуют</p>
+                            <div class="link-contaner">
+                            {% for emp_id, emp_name in project.employees %}
+                                <a href="/employee?id={{ emp_id }}">{{ emp_name }}</a>
+                            {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="project-link-text">Участников пока нет</p>
+                            {% endif %}
+                            <p class="status {% if project.invite.status.label == "Отправлен" %} statusWite {% elif project.invite.status.label == "Принят" %} statusOk {% elif project.invite.status.label == "Отклонён" %} statusNo {% endif %}">{{ project.invite.status.label }}</p>
+                        </div>
+                        {%endfor%}
+                    {% else %}
+                        <div class="project-not-data-contaner">
+                            <p>У Вас еще нет ни одного отклика. Перейдите на главную, чтобы найти подходящие проекты.</p>
+                            <a href="/general">Искать проект</a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            {% else %}
+                <div class="profile-not-data-contaner">
+                    <div class="profile-not-data-contaner-left">
+                        <h2>Не заполнено</h2>
+                        <a href="/edit_profile">Заполнить профиль</a>
+                    </div>
+                    <img class="profile-not-data-contaner-right" src="../static/image/default.png" alt="">
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
