@@ -148,15 +148,15 @@ def type_user():
 def general():
     owner_exists = Owner.query.filter_by(user_id=current_user.id).first()
     employee_exists = Employee.query.filter_by(user_id=current_user.id).first()
-
+    count_notifications = None
     roles = RoleType.query.all()
     scopes = ProjectScopeType.query.all()
 
     if owner_exists:
         count_notifications = (
-            db.session.query(func.count(Response.id))
-            .join(Project, Project.id == Response.project_id)
-            .join(StatusInvite, StatusInvite.id == Response.status_id)
+            db.session.query(func.count(Invite.id))
+            .join(Project, Project.id == Invite.project_id)
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner_exists.id)
             .filter(StatusInvite.label == "Отправлен")
             .scalar()
@@ -179,6 +179,15 @@ def general():
         conditionss=conditionss, scopes=scopes, experiences=experiences, involvements=involvements, targets=targets,
         employees=employees)
     elif employee_exists:
+        count_notifications = (
+            db.session.query(func.count(Invite.id))
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
+            .filter(Invite.employee_id == employee_exists.id)
+            .filter(StatusInvite.label == "Отправлен")
+            .scalar(
+        ))
+        if count_notifications > 100:
+            count_notifications = "99+"
         conditionss = ProjectConditionsType.query.all()
         targets = ProjectTargetType.query.all()
         stages = ProjectStageType.query.all()
@@ -202,7 +211,7 @@ def general():
 
             project.employees = employees_info 
 
-        return render_template('general.html', owner=False, roles=roles, scopes=scopes, stages=stages, targets=targets, conditionss=conditionss, projects=projects)
+        return render_template('general.html', count_notifications=count_notifications, owner=False, roles=roles, scopes=scopes, stages=stages, targets=targets, conditionss=conditionss, projects=projects)
     else:
         pass
 
@@ -219,9 +228,9 @@ def profile():
     employee_exists = Employee.query.filter_by(user_id=current_user.id).first()
     if owner_exists:
         count_notifications = (
-            db.session.query(func.count(Response.id))
-            .join(Project, Project.id == Response.project_id)
-            .join(StatusInvite, StatusInvite.id == Response.status_id)
+            db.session.query(func.count(Invite.id))
+            .join(Project, Project.id == Invite.project_id)
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner_exists.id)
             .filter(StatusInvite.label == "Отправлен")
             .scalar()
@@ -248,6 +257,15 @@ def profile():
 
         return render_template('profile.html', owner=True, count_notifications=count_notifications, data=data, projects=projects)
     elif employee_exists:
+        count_notifications = (
+            db.session.query(func.count(Invite.id))
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
+            .filter(Invite.employee_id == employee_exists.id)
+            .filter(StatusInvite.label == "Отправлен")
+            .scalar(
+        ))
+        if count_notifications > 100:
+            count_notifications = "99+"
         data = Employee.query.filter_by(user_id=current_user.id).first() 
 
         responses = Response.query.filter_by(employee_id=employee_exists.id).all()
@@ -367,9 +385,9 @@ def edit_profile():
     sexs = Sex.query.all()
     if owner_exists:
         count_notifications = (
-            db.session.query(func.count(Response.id))
-            .join(Project, Project.id == Response.project_id)
-            .join(StatusInvite, StatusInvite.id == Response.status_id)
+            db.session.query(func.count(Invite.id))
+            .join(Project, Project.id == Invite.project_id)
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner_exists.id)
             .filter(StatusInvite.label == "Отправлен")
             .scalar()
@@ -379,13 +397,22 @@ def edit_profile():
         data = Owner.query.filter_by(user_id=current_user.id).first()
         return render_template('edit_profile.html', count_notifications=count_notifications, owner=True, data=data, roles=roles, experiences=experiences, sexs=sexs)
     elif employee_exists:
+        count_notifications = (
+            db.session.query(func.count(Invite.id))
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
+            .filter(Invite.employee_id == employee_exists.id)
+            .filter(StatusInvite.label == "Отправлен")
+            .scalar(
+        ))
+        if count_notifications > 100:
+            count_notifications = "99+"
         involvements = InvolvementType.query.all()
         conditionss = ConditionType.query.all()
         targets = TargetType.query.all()
         scopes = ProjectScopeType.query.all()
 
         data = Employee.query.filter_by(user_id=current_user.id).first()  
-        return render_template('edit_profile.html', owner=False, data=data, roles=roles, experiences=experiences, sexs=sexs,
+        return render_template('edit_profile.html', count_notifications=count_notifications, owner=False, data=data, roles=roles, experiences=experiences, sexs=sexs,
         involvements=involvements, conditionss=conditionss, targets=targets, scopes=scopes)
     else:
         pass
@@ -410,9 +437,9 @@ def employee():
         if employee:
             if owner_exists:
                 count_notifications = (
-                    db.session.query(func.count(Response.id))
-                    .join(Project, Project.id == Response.project_id)
-                    .join(StatusInvite, StatusInvite.id == Response.status_id)
+                    db.session.query(func.count(Invite.id))
+                    .join(Project, Project.id == Invite.project_id)
+                    .join(StatusInvite, StatusInvite.id == Invite.status_id)
                     .filter(Project.owner_id == owner_exists.id)
                     .filter(StatusInvite.label == "Отправлен")
                     .scalar()
@@ -444,9 +471,87 @@ def employee():
                 if Favourite_employees.query.filter_by(owner_id=owner_exists.id, employee_id=employee.id).first():
                     fav = True
 
+            else:
+                employee_exists = Employee.query.filter_by(user_id=current_user.id).first()
+                count_notifications = (
+                    db.session.query(func.count(Invite.id))
+                    .join(StatusInvite, StatusInvite.id == Invite.status_id)
+                    .filter(Invite.employee_id == employee_exists.id)
+                    .filter(StatusInvite.label == "Отправлен")
+                    .scalar(
+                ))
+                if count_notifications > 100:
+                    count_notifications = "99+"
             return render_template('employee.html', projects=projects, count_notifications=count_notifications, owner=owner, employee=employee, fav=fav, project_yes=project_yes)
     else:
         return "No employee ID provided", 400
+
+
+"""
+Отображает подробную страницу создателя проекта.
+Показывает, какие проекты есть.
+"""
+@main_bp.route('/owner', methods=['GET', 'POST'])
+@login_required
+def owner():
+    count_notifications = None
+    project_yes = None
+    own_id = request.args.get('id')
+    projects = None
+    if own_id:
+        owner_exists = Owner.query.filter_by(user_id=current_user.id).first()
+        own_onj = Owner.query.filter_by(id=own_id).first()
+        owner = False
+        if own_onj:
+            projects = Project.query.filter_by(owner_id=own_id).all()
+
+            if projects:
+                for project in projects:
+                    project_roles = ProjectRoles.query.filter_by(project_id=project.id).all()
+                    role_labels = [RoleType.query.get(role.role_id).label for role in project_roles]
+                    project.roles_str = ', '.join(role_labels)
+                    if not owner_exists:
+                        employee = Employee.query.filter_by(user_id=current_user.id).first()
+                        fav_project = Favourite_projects.query.filter_by(employee_id=employee.id, project_id=project.id).first()
+                        print(fav_project)
+                        if fav_project:
+                            project.fav = True
+                    project_employees = ProjectEmployee.query.filter_by(project_id=project.id).all()
+                    employees_info = []
+                    for pe in project_employees:
+                        employee = Employee.query.get(pe.employee_id)
+                        if employee:
+                            full_name = f"{employee.name} {employee.surname}".strip()
+                            employees_info.append((employee.id, full_name))
+                    project.employees = employees_info 
+            if owner_exists:
+                count_notifications = (
+                    db.session.query(func.count(Invite.id))
+                    .join(Project, Project.id == Invite.project_id)
+                    .join(StatusInvite, StatusInvite.id == Invite.status_id)
+                    .filter(Project.owner_id == owner_exists.id)
+                    .filter(StatusInvite.label == "Отправлен")
+                    .scalar()
+                )
+                if count_notifications > 100:
+                    count_notifications = "99+"
+                owner = True
+
+            else:
+                employee_exists = Employee.query.filter_by(user_id=current_user.id).first()
+                count_notifications = (
+                    db.session.query(func.count(Invite.id))
+                    .join(StatusInvite, StatusInvite.id == Invite.status_id)
+                    .filter(Invite.employee_id == employee_exists.id)
+                    .filter(StatusInvite.label == "Отправлен")
+                    .scalar(
+                ))
+                if count_notifications > 100:
+                    count_notifications = "99+"
+            return render_template('owner.html', projects=projects, count_notifications=count_notifications, owner=owner, own_onj=own_onj)
+    else:
+        return "No employee ID provided", 400
+
 
 """
 Добавляет или удаляет сотрудника из избранного текущего владельца по ID.
@@ -592,9 +697,9 @@ def project_add():
     
     if owner:
         count_notifications = (
-            db.session.query(func.count(Response.id))
-            .join(Project, Project.id == Response.project_id)
-            .join(StatusInvite, StatusInvite.id == Response.status_id)
+            db.session.query(func.count(Invite.id))
+            .join(Project, Project.id == Invite.project_id)
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner.id)
             .filter(StatusInvite.label == "Отправлен")
             .scalar()
@@ -661,9 +766,9 @@ def edit_project():
         return redirect(url_for('main.profile'))
     
     count_notifications = (
-        db.session.query(func.count(Response.id))
-        .join(Project, Project.id == Response.project_id)
-        .join(StatusInvite, StatusInvite.id == Response.status_id)
+        db.session.query(func.count(Invite.id))
+        .join(Project, Project.id == Invite.project_id)
+        .join(StatusInvite, StatusInvite.id == Invite.status_id)
         .filter(Project.owner_id == owner.id)
         .filter(StatusInvite.label == "Отправлен")
         .scalar()
@@ -692,9 +797,9 @@ def project():
         owner = False
         if owner_exists:
             count_notifications = (
-                db.session.query(func.count(Response.id))
-                .join(Project, Project.id == Response.project_id)
-                .join(StatusInvite, StatusInvite.id == Response.status_id)
+                db.session.query(func.count(Invite.id))
+                .join(Project, Project.id == Invite.project_id)
+                .join(StatusInvite, StatusInvite.id == Invite.status_id)
                 .filter(Project.owner_id == owner_exists.id)
                 .filter(StatusInvite.label == "Отправлен")
                 .scalar()
@@ -702,6 +807,17 @@ def project():
             if count_notifications > 100:
                 count_notifications = "99+"
             owner = True
+        else:
+            employee_exists = Employee.query.filter_by(user_id=current_user.id).first()
+            count_notifications = (
+                db.session.query(func.count(Invite.id))
+                .join(StatusInvite, StatusInvite.id == Invite.status_id)
+                .filter(Invite.employee_id == employee_exists.id)
+                .filter(StatusInvite.label == "Отправлен")
+                .scalar(
+            ))
+            if count_notifications > 100:
+                count_notifications = "99+"
         
         project = Project.query.filter_by(id=project_id).first()
         if project:
@@ -940,9 +1056,9 @@ def favourite():
 
     if owner_exists:
         count_notifications = (
-            db.session.query(func.count(Response.id))
-            .join(Project, Project.id == Response.project_id)
-            .join(StatusInvite, StatusInvite.id == Response.status_id)
+            db.session.query(func.count(Invite.id))
+            .join(Project, Project.id == Invite.project_id)
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner_exists.id)
             .filter(StatusInvite.label == "Отправлен")
             .scalar()
@@ -958,6 +1074,15 @@ def favourite():
 
         return render_template('favourite.html', count_notifications=count_notifications, owner=True, employees=employees)
     elif employee_exists:
+        count_notifications = (
+            db.session.query(func.count(Invite.id))
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
+            .filter(Invite.employee_id == employee_exists.id)
+            .filter(StatusInvite.label == "Отправлен")
+            .scalar(
+        ))
+        if count_notifications > 100:
+            count_notifications = "99+"
         projects = (
             db.session.query(Project)
             .join(Favourite_projects, Project.id == Favourite_projects.project_id)
@@ -981,7 +1106,7 @@ def favourite():
 
             project.employees = employees_info 
 
-        return render_template('favourite.html', owner=False, projects=projects)
+        return render_template('favourite.html', count_notifications=count_notifications, owner=False, projects=projects)
     else:
         pass
 
@@ -1000,9 +1125,9 @@ def notifications():
 
     if owner_exists:
         count_notifications = (
-            db.session.query(func.count(Response.id))
-            .join(Project, Project.id == Response.project_id)
-            .join(StatusInvite, StatusInvite.id == Response.status_id)
+            db.session.query(func.count(Invite.id))
+            .join(Project, Project.id == Invite.project_id)
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner_exists.id)
             .filter(StatusInvite.label == "Отправлен")
             .scalar()
@@ -1053,6 +1178,15 @@ def notifications():
             proj.employees = participants
 
     elif employee_exists:
+        count_notifications = (
+            db.session.query(func.count(Invite.id))
+            .join(StatusInvite, StatusInvite.id == Invite.status_id)
+            .filter(Invite.employee_id == employee_exists.id)
+            .filter(StatusInvite.label == "Отправлен")
+            .scalar(
+        ))
+        if count_notifications > 100:
+            count_notifications = "99+"
         invites = Invite.query.filter_by(employee_id=employee_exists.id).all()
         project_ids = [invite.project_id for invite in invites]
         invite_dict = {invite.project_id: invite for invite in invites}
@@ -1279,10 +1413,10 @@ def get_employees():
         query = (
             query
             .outerjoin(RoleType, Employee.role_id == RoleType.id)
-            .outerjoin(ExperienceType, Employee.experience_id == ExperienceType.id)
+            .outerjoin(ExperienceLevel, Employee.experience_id == ExperienceLevel.id)
             .outerjoin(TargetType, Employee.target_id == TargetType.id)
-            .outerjoin(ScopeType, Employee.scope_id == ScopeType.id)
-            .outerjoin(ConditionsType, Employee.conditions_id == ConditionsType.id)
+            .outerjoin(ProjectScopeType, Employee.scope_id == ProjectScopeType.id)
+            .outerjoin(ConditionType, Employee.conditions_id == ConditionType.id)
             .outerjoin(InvolvementType, Employee.involvement_id == InvolvementType.id)
             .filter(
                 db.or_(
@@ -1290,10 +1424,10 @@ def get_employees():
                     Employee.surname.ilike(f"%{text}%"),
                     Employee.about.ilike(f"%{text}%"),
                     RoleType.label.ilike(f"%{text}%"),
-                    ExperienceType.label.ilike(f"%{text}%"),
+                    ExperienceLevel.label.ilike(f"%{text}%"),
                     TargetType.label.ilike(f"%{text}%"),
-                    ScopeType.label.ilike(f"%{text}%"),
-                    ConditionsType.label.ilike(f"%{text}%"),
+                    ProjectScopeType.label.ilike(f"%{text}%"),
+                    ConditionType.label.ilike(f"%{text}%"),
                     InvolvementType.label.ilike(f"%{text}%")
                 )
             )
@@ -1309,7 +1443,6 @@ def get_employees():
         emp.fav = emp.id in fav_ids
 
     return render_template("partials/employees_cards.html", employees=employees, owner=True)
-
 
 """
 Фильтрует проекты по параметрам (сфера, этап, условия, цель, роль и текст) и возвращает HTML.

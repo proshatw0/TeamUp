@@ -143,101 +143,9 @@ header{
   color: #E13131;
 }
 
-.search-area{
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 24px;
-}
-
-.search-container {
-    display: flex;
-    position: relative;
-    width: calc(100% - 179px);
-    height: 48px;
-    border: 1px solid #ADADAD;
-    border-radius: 14px;
-    display: flex;
-    align-items: center;
-    background-color: #FFFFFF;
-    overflow: hidden;
-}
-
-.search-container .search-icon {
-    position: absolute;
-    left: 12px;
-    width: 24px;
-    height: 24px;
-    pointer-events: none;
-    opacity: 1;
-}
-
-.search-container input[type="text"] {
-    width: 100%;
-    height: 100%;
-    padding: 0 16px 0 44px;
-    border: none;
-    outline: none;
-    font-size: 16px;
-    background: transparent;
-    color: #232323;
-}
-
-input::placeholder { color: #ADADAD; }
-input::-webkit-input-placeholder { color: #ADADAD; }
-input::-moz-placeholder { color: #ADADAD; }
-input:-ms-input-placeholder { color: #ADADAD; }
-
-.search-area button{
-    width: 155px;
-    background-color: #7E5AFC;
-    transition: all 0.3s;
-    color: #FFFFFF;
-    font-size: 16px;
-    font-weight: 600;
-    padding: 0 12px;
-    border: none;
-    border-radius: 24px;
-    cursor: pointer;
-}
-
-.search-area button:hover{
-    background-color: #6145c4;
-}
-
-.category-contaner{
-    display: flex;
-    width: 100%;
-    gap: 12px;
-    flex-wrap: wrap;
-    margin-bottom: 42px;
-}
-
-.category-contaner select {
-    color: #232323;
-    background-color: #F0F0F0;
-    background-image: url('../image/arrow.svg');
-    background-repeat: no-repeat;
-    background-position: right 1em center;
-    background-size: 24px;
-    border: none;
-    border-radius: 24px;
-    padding: 12px 2.5em 12px 20px;
-    appearance: none;
-    font-size: 16px;
-    min-width: 80px;
-    max-width: 100%;
-    width: auto;
-    transition: width 0.2s ease;
-}
-
-.category-contaner select option {
-    background-color: #ffffff;
-}
-
 .employee-contaner{
     display: flex;
     flex-direction: column;
-    width: calc(100% - 64px);
     padding: 32px;
     border-radius: 24px;
     box-shadow: 0px 4px 20px 0px #00000014;
@@ -428,6 +336,15 @@ input:-ms-input-placeholder { color: #ADADAD; }
 .project-employee{
     margin-left: 64px;
     width: calc(100% - 64px);
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.4s ease, opacity 0.3s ease;
+}
+
+.project-employee.open {
+    opacity: 1;
+    max-height: 1000px;
 }
 
 .link-contaner-response{

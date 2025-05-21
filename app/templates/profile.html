@@ -22,7 +22,7 @@
                 </a>
             </div>
             <div class="header-right">
-                <a class="header-button" href="{% if owner %} {% else %} {{ url_for('main.edit_profile') }} {% endif %}"> 
+                <a class="header-button" href="{% if owner %} /project_add {% else %} {{ url_for('main.edit_profile') }} {% endif %}"> 
                     {% if owner %}Создать проект{% else %}Заполнить профиль{% endif %} 
                 </a>
                 <a href="/favourite">
@@ -163,7 +163,7 @@
                     {% else %}
                         <div class="project-not-data-contaner">
                             <p>У Вас еще нет ни одного проекта. Создайте проект, чтобы приглашать участников в команду.</p>
-                            <a href="">Создать проект</a>
+                            <a href="/project_add">Создать проект</a>
                         </div>
                     {% endif %}
                 {% else %}
