@@ -173,7 +173,7 @@
                     {% endif %}
                     <div class="creator-employees-contaner">
                         <div class="creator-contaner">
-                            <img src="{{ url_for('static', filename=project.owner.avatar) }}" alt="">
+                               <img src="{{ url_for('static', filename=(project.owner.avatar or 'image/default.png')) }}">
                         </div>
                         <div class="creator">
                             <p>Создатель проекта</p>

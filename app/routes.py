@@ -158,7 +158,8 @@ def general():
             .join(Project, Project.id == Invite.project_id)
             .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner_exists.id)
-            .filter(StatusInvite.label == "Отправлен")
+            .filter(StatusInvite.label != "Отправлен")
+            .filter(Invite.checked == False)
             .scalar()
         )
         if count_notifications > 100:
@@ -232,7 +233,8 @@ def profile():
             .join(Project, Project.id == Invite.project_id)
             .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner_exists.id)
-            .filter(StatusInvite.label == "Отправлен")
+            .filter(StatusInvite.label != "Отправлен")
+            .filter(Invite.checked == False)
             .scalar()
         )
         if count_notifications > 100:
@@ -389,7 +391,8 @@ def edit_profile():
             .join(Project, Project.id == Invite.project_id)
             .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner_exists.id)
-            .filter(StatusInvite.label == "Отправлен")
+            .filter(StatusInvite.label != "Отправлен")
+            .filter(Invite.checked == False)
             .scalar()
         )
         if count_notifications > 100:
@@ -441,7 +444,8 @@ def employee():
                     .join(Project, Project.id == Invite.project_id)
                     .join(StatusInvite, StatusInvite.id == Invite.status_id)
                     .filter(Project.owner_id == owner_exists.id)
-                    .filter(StatusInvite.label == "Отправлен")
+                    .filter(StatusInvite.label != "Отправлен")
+                    .filter(Invite.checked == False)
                     .scalar()
                 )
                 if count_notifications > 100:
@@ -530,7 +534,8 @@ def owner():
                     .join(Project, Project.id == Invite.project_id)
                     .join(StatusInvite, StatusInvite.id == Invite.status_id)
                     .filter(Project.owner_id == owner_exists.id)
-                    .filter(StatusInvite.label == "Отправлен")
+                    .filter(StatusInvite.label != "Отправлен")
+                    .filter(Invite.checked == False)
                     .scalar()
                 )
                 if count_notifications > 100:
@@ -696,12 +701,17 @@ def project_add():
         return redirect(url_for('main.general'))
     
     if owner:
+        if not owner.name:
+            flash("Сначала заполните профль", "error")
+            return redirect(url_for('main.edit_profile'))
+
         count_notifications = (
             db.session.query(func.count(Invite.id))
             .join(Project, Project.id == Invite.project_id)
             .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner.id)
-            .filter(StatusInvite.label == "Отправлен")
+            .filter(StatusInvite.label != "Отправлен")
+            .filter(Invite.checked == False)
             .scalar()
         )
         if count_notifications > 100:
@@ -770,7 +780,8 @@ def edit_project():
         .join(Project, Project.id == Invite.project_id)
         .join(StatusInvite, StatusInvite.id == Invite.status_id)
         .filter(Project.owner_id == owner.id)
-        .filter(StatusInvite.label == "Отправлен")
+        .filter(StatusInvite.label != "Отправлен")
+        .filter(Invite.checked == False)
         .scalar()
     )
     if count_notifications > 100:
@@ -801,7 +812,8 @@ def project():
                 .join(Project, Project.id == Invite.project_id)
                 .join(StatusInvite, StatusInvite.id == Invite.status_id)
                 .filter(Project.owner_id == owner_exists.id)
-                .filter(StatusInvite.label == "Отправлен")
+                .filter(StatusInvite.label != "Отправлен")
+                .filter(Invite.checked == False)
                 .scalar()
             )
             if count_notifications > 100:
@@ -1060,7 +1072,8 @@ def favourite():
             .join(Project, Project.id == Invite.project_id)
             .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner_exists.id)
-            .filter(StatusInvite.label == "Отправлен")
+            .filter(StatusInvite.label != "Отправлен")
+            .filter(Invite.checked == False)
             .scalar()
         )
         if count_notifications > 100:
@@ -1124,16 +1137,16 @@ def notifications():
     employees = None
 
     if owner_exists:
-        count_notifications = (
-            db.session.query(func.count(Invite.id))
+        invites_to_update = (
+            db.session.query(Invite)
             .join(Project, Project.id == Invite.project_id)
-            .join(StatusInvite, StatusInvite.id == Invite.status_id)
             .filter(Project.owner_id == owner_exists.id)
-            .filter(StatusInvite.label == "Отправлен")
-            .scalar()
+            .filter(Invite.checked == False)
+            .all()
         )
-        if count_notifications > 100:
-            count_notifications = "99+"
+        for invite in invites_to_update:
+            invite.checked = True
+        db.session.commit()
 
         owner = True
         projects = Project.query.filter_by(owner_id=owner_exists.id).all()

@@ -224,6 +224,8 @@ class Invite(db.Model):
     status_id = db.Column(db.Integer, db.ForeignKey("status_invite.id"), nullable=False)
     status = db.relationship("StatusInvite", backref="invites")
 
+    checked = db.Column(db.Boolean, default=False, nullable=False)
+
     def __repr__(self):
         return (f"id: {self.id}, project_id: {self.project_id}, "
                 f"employee_id: {self.employee_id}, status: {self.status.label}")
